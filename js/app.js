@@ -672,51 +672,85 @@ function loadStats() {
   });
 }
 
-window.openStatsModal = function () {
-  waitFb(async () => {
-    const { db, doc, getDoc } = window._fb;
-    const snap = await getDoc(doc(db, "settings", "heroStats"));
-    _statFields = snap.exists() ? [...(snap.data().stats || [])] : [...defaultStats];
+window.openStatsModal = async function () {
+  try {
+    // Use current displayed stats as fallback if Firestore fails
+    _statFields = [...defaultStats];
+    if (window._fb) {
+      try {
+        const { db, doc, getDoc } = window._fb;
+        const snap = await getDoc(doc(db, "settings", "heroStats"));
+        if (snap.exists()) _statFields = [...(snap.data().stats || defaultStats)];
+      } catch(e) { console.warn("Stats fetch error:", e); }
+    }
     renderStatEditFields();
     openModal("statsModal");
-  });
+  } catch(e) {
+    console.error("openStatsModal error:", e);
+    showToast("Modal açılamadı: " + e.message);
+  }
 };
 
 function renderStatEditFields() {
   const container = document.getElementById("statsEditFields");
+  if (!container) return;
   container.innerHTML = _statFields.map((s, i) => `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.5rem;align-items:end;margin-bottom:.5rem;">
+    <div class="stat-edit-row" data-index="${i}" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.5rem;align-items:end;margin-bottom:.8rem;">
       <div>
-        <label style="font-size:.75rem;color:var(--text-3);">Sayı</label>
-        <input type="number" class="form-input" value="${s.num}" oninput="_statFields[${i}].num=+this.value" />
+        <label style="font-size:.75rem;color:var(--text-3);display:block;margin-bottom:.3rem;">Sayı</label>
+        <input type="number" class="form-input stat-num-input" data-i="${i}" value="${s.num}" />
       </div>
       <div>
-        <label style="font-size:.75rem;color:var(--text-3);">Suffix (+ vb.)</label>
-        <input type="text" class="form-input" value="${s.suffix||''}" oninput="_statFields[${i}].suffix=this.value" />
+        <label style="font-size:.75rem;color:var(--text-3);display:block;margin-bottom:.3rem;">Ek (+ vb.)</label>
+        <input type="text" class="form-input stat-suffix-input" data-i="${i}" value="${s.suffix || ''}" />
       </div>
       <div>
-        <label style="font-size:.75rem;color:var(--text-3);">Etiket</label>
-        <input type="text" class="form-input" value="${s.label}" oninput="_statFields[${i}].label=this.value" />
+        <label style="font-size:.75rem;color:var(--text-3);display:block;margin-bottom:.3rem;">Etiket</label>
+        <input type="text" class="form-input stat-label-input" data-i="${i}" value="${s.label}" />
       </div>
-      <button onclick="removeStatField(${i})" style="height:42px;width:42px;border-radius:10px;background:rgba(220,50,50,.1);border:1px solid rgba(220,50,50,.3);color:#e55;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <button onclick="removeStatField(${i})" style="height:42px;width:42px;border-radius:10px;background:rgba(220,50,50,.1);border:1px solid rgba(220,50,50,.3);color:#e55;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1.4rem;">
         <i class="fa-solid fa-trash"></i>
       </button>
     </div>
   `).join("");
 }
 
-window.removeStatField = (i) => { _statFields.splice(i, 1); renderStatEditFields(); };
+// Read values directly from DOM inputs on save (avoids oninput index issues)
+function readStatFieldsFromDOM() {
+  const rows = document.querySelectorAll(".stat-edit-row");
+  return Array.from(rows).map(row => ({
+    num: +row.querySelector(".stat-num-input").value || 0,
+    suffix: row.querySelector(".stat-suffix-input").value,
+    label: row.querySelector(".stat-label-input").value
+  }));
+}
+
+window.removeStatField = (i) => {
+  _statFields = readStatFieldsFromDOM();
+  _statFields.splice(i, 1);
+  renderStatEditFields();
+};
+
 window.addStatField = () => {
+  _statFields = readStatFieldsFromDOM();
   _statFields.push({ num: 0, suffix: "+", label: "Yeni" });
   renderStatEditFields();
 };
 
 window.saveStats = async function () {
-  const { db, doc, setDoc } = window._fb;
-  await setDoc(doc(db, "settings", "heroStats"), { stats: _statFields });
-  closeModal("statsModal");
-  renderHeroStats(_statFields);
-  showToast("İstatistikler güncellendi ✓");
+  try {
+    _statFields = readStatFieldsFromDOM();
+    if (window._fb) {
+      const { db, doc, setDoc } = window._fb;
+      await setDoc(doc(db, "settings", "heroStats"), { stats: _statFields });
+    }
+    closeModal("statsModal");
+    renderHeroStats(_statFields);
+    showToast("İstatistikler güncellendi ✓");
+  } catch(e) {
+    console.error("saveStats error:", e);
+    showToast("Kayıt hatası: " + e.message);
+  }
 };
 
 loadStats();
