@@ -672,22 +672,26 @@ function loadStats() {
   });
 }
 
+// Fonksiyonu window nesnesine bağla ki HTML'deki onclick onu bulabilsin
 window.openStatsModal = async function () {
+  // Senin mevcut kodun buraya gelecek...
+  if (!(window._currentUser && window._currentUser.email === window._fb.ADMIN_EMAIL)) {
+      showToast("Yetkisiz erişim!");
+      return;
+  }
+  
   try {
-    // Use current displayed stats as fallback if Firestore fails
     _statFields = [...defaultStats];
     if (window._fb) {
-      try {
-        const { db, doc, getDoc } = window._fb;
-        const snap = await getDoc(doc(db, "settings", "heroStats"));
-        if (snap.exists()) _statFields = [...(snap.data().stats || defaultStats)];
-      } catch(e) { console.warn("Stats fetch error:", e); }
+      const { db, doc, getDoc } = window._fb;
+      const snap = await getDoc(doc(db, "settings", "heroStats"));
+      if (snap.exists()) _statFields = [...(snap.data().stats || defaultStats)];
     }
     renderStatEditFields();
     openModal("statsModal");
   } catch(e) {
     console.error("openStatsModal error:", e);
-    showToast("Modal açılamadı: " + e.message);
+    showToast("Modal açılamadı.");
   }
 };
 
