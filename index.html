@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photo Berkay | Sosyal Medya Yönetimi</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, onSnapshot, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ── Firebase Config ── //
+    // TODO: Replace with your actual Firebase config from Firebase Console
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    const ADMIN_EMAIL = "yukluberkay@gmail.com";
+
+    // ── Expose to window ── //
+    window._fb = { auth, db, signInWithEmailAndPassword, signInWithPopup, googleProvider, signOut, onAuthStateChanged,
+      collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, onSnapshot, serverTimestamp, ADMIN_EMAIL };
+
+    // ── Auth state listener ── //
+    onAuthStateChanged(auth, user => {
+      window._currentUser = user;
+      const isAdmin = user && user.email === ADMIN_EMAIL;
+      document.querySelectorAll(".admin-only").forEach(el => el.style.display = isAdmin ? "" : "none");
+      document.querySelectorAll(".admin-hidden").forEach(el => el.style.display = isAdmin ? "none" : "");
+      const btn = document.getElementById("authBtn");
+      const btnText = document.getElementById("authBtnText");
+      if (btn) {
+        if (user) {
+          btnText.textContent = "Çıkış Yap";
+          btn.classList.add("logged-in");
+        } else {
+          btnText.textContent = "Giriş Yap";
+          btn.classList.remove("logged-in");
+        }
+      }
+      if (typeof window._onAuthReady === "function") window._onAuthReady(user, isAdmin);
+    });
+  </script>
+</head>
+
+<body>
+
+<!-- ═══════════════════════ PARTICLES BG ═══════════════════════ -->
+<canvas id="particles"></canvas>
+
+<!-- ═══════════════════════ NAVBAR ═══════════════════════ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a class="logo" href="#hero">
+      <div class="logo-icon">
+        <i class="fa-solid fa-camera-retro"></i>
+      </div>
+      <span class="logo-text">Photo<span class="accent">Berkay</span></span>
+    </a>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#plans" class="nav-link">Planlar</a></li>
+      <li><a href="#extras" class="nav-link">Ekstra</a></li>
+      <li><a href="#about" class="nav-link">Hakkında</a></li>
+      <li><a href="#reviews" class="nav-link">Yorumlar</a></li>
+      <li><a href="#contact" class="nav-link">İletişim</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="theme-toggle" id="themeToggle" title="Tema Değiştir">
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
+      </button>
+      <button class="auth-btn" id="authBtn" onclick="openAuthModal()">
+        <i class="fa-solid fa-user"></i>
+        <span id="authBtnText">Giriş Yap</span>
+      </button>
+      <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="pulse-dot"></span>
+      Profesyonel Sosyal Medya Yönetimi
+    </div>
+    <h1 class="hero-title">
+      İşletmenizi<br/>
+      <span class="gradient-text">Dijitale Taşıyın</span>
+    </h1>
+    <p class="hero-sub">
+      Profesyonel içerik üretimi, reels çekimi ve sosyal medya stratejisi ile markanızı güçlendiriyorum.
+    </p>
+    <div class="hero-cta">
+      <a href="#plans" class="btn-primary">Planları Gör <i class="fa-solid fa-arrow-down"></i></a>
+      <a href="#contact" class="btn-outline">İletişime Geç</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num" data-target="50">0</span><span>+ Müşteri</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num" data-target="200">0</span><span>+ İçerik</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num" data-target="3">0</span><span> Yıl Deneyim</span></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="floating-card card1"><i class="fa-brands fa-instagram"></i><span>Reels</span></div>
+    <div class="floating-card card2"><i class="fa-solid fa-drone"></i><span>Drone</span></div>
+    <div class="floating-card card3"><i class="fa-solid fa-chart-line"></i><span>Analiz</span></div>
+    <div class="hero-circle">
+      <div class="circle-inner">
+        <i class="fa-solid fa-camera-retro"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ PLANS ═══════════════════════ -->
+<section class="section" id="plans">
+  <div class="section-header">
+    <span class="section-tag">Hizmetlerim</span>
+    <h2 class="section-title">Sosyal Medya <span class="gradient-text">Paketleri</span></h2>
+    <p class="section-sub">İşletmenizin ihtiyacına göre özelleştirilmiş planlar</p>
+  </div>
+
+  <!-- Admin: Add Plan Button -->
+  <div class="admin-only admin-toolbar" style="display:none;">
+    <button class="btn-admin" onclick="openPlanModal()">
+      <i class="fa-solid fa-plus"></i> Yeni Plan Ekle
+    </button>
+  </div>
+
+  <div class="plans-grid" id="plansGrid">
+    <div class="plans-loading"><div class="spinner"></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ EXTRAS ═══════════════════════ -->
+<section class="section section-alt" id="extras">
+  <div class="section-header">
+    <span class="section-tag">Tek Seferlik</span>
+    <h2 class="section-title">Ekstra <span class="gradient-text">Hizmetler</span></h2>
+    <p class="section-sub">Sadece ihtiyacınız olan hizmeti alın</p>
+  </div>
+
+  <!-- Admin: Add Extra Button -->
+  <div class="admin-only admin-toolbar" style="display:none;">
+    <button class="btn-admin" onclick="openExtraModal()">
+      <i class="fa-solid fa-plus"></i> Yeni Ekstra Ekle
+    </button>
+  </div>
+
+  <div class="extras-grid" id="extrasGrid">
+    <div class="plans-loading"><div class="spinner"></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ ABOUT ═══════════════════════ -->
+<section class="section" id="about">
+  <div class="about-wrap">
+    <div class="about-visual">
+      <div class="about-card-bg"></div>
+      <div class="about-icon-ring">
+        <i class="fa-solid fa-user-tie"></i>
+      </div>
+    </div>
+    <div class="about-content" id="aboutContent">
+      <!-- Dynamic from Firestore -->
+      <span class="section-tag">Hakkımda</span>
+      <h2 class="section-title"><span class="gradient-text">Berkay Yüklü</span></h2>
+      <p class="about-bio" id="aboutBio">Yükleniyor...</p>
+      <div class="about-skills" id="aboutSkills"></div>
+      <div class="admin-only" style="display:none; margin-top:1rem;">
+        <button class="btn-admin" onclick="openAboutModal()"><i class="fa-solid fa-pen"></i> Hakkında Düzenle</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ REVIEWS ═══════════════════════ -->
+<section class="section section-alt" id="reviews">
+  <div class="section-header">
+    <span class="section-tag">Müşteri Görüşleri</span>
+    <h2 class="section-title">Neler <span class="gradient-text">Dediler?</span></h2>
+  </div>
+  <div class="reviews-grid" id="reviewsGrid">
+    <div class="plans-loading"><div class="spinner"></div></div>
+  </div>
+  <!-- Add review form (public) -->
+  <div class="review-form-wrap admin-hidden" id="reviewFormWrap">
+    <h3>Yorum Yap</h3>
+    <div class="review-form">
+      <input type="text" id="reviewName" placeholder="Adınız" class="form-input" />
+      <input type="text" id="reviewBusiness" placeholder="İşletme Adı (opsiyonel)" class="form-input" />
+      <div class="star-select" id="starSelect">
+        <span onclick="setRating(1)">★</span><span onclick="setRating(2)">★</span>
+        <span onclick="setRating(3)">★</span><span onclick="setRating(4)">★</span>
+        <span onclick="setRating(5)">★</span>
+      </div>
+      <textarea id="reviewText" placeholder="Yorumunuz..." class="form-input" rows="4"></textarea>
+      <button class="btn-primary" onclick="submitReview()">Yorum Gönder <i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ CONTACT ═══════════════════════ -->
+<section class="section" id="contact">
+  <div class="section-header">
+    <span class="section-tag">İletişim</span>
+    <h2 class="section-title">Bana <span class="gradient-text">Ulaşın</span></h2>
+  </div>
+  <div class="contact-grid" id="contactGrid">
+    <div class="plans-loading"><div class="spinner"></div></div>
+  </div>
+  <div class="admin-only" style="display:none; margin-top:1.5rem; text-align:center;">
+    <button class="btn-admin" onclick="openContactModal()"><i class="fa-solid fa-pen"></i> İletişim Bilgilerini Düzenle</button>
+  </div>
+</section>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-camera-retro"></i></div>
+      <span class="logo-text">Photo<span class="accent">Berkay</span></span>
+    </div>
+    <p>© 2025 Photo Berkay. Tüm hakları saklıdır.</p>
+  </div>
+</footer>
+
+<!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
+<div class="modal-overlay" id="authModal" onclick="closeModal('authModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('authModal')"><i class="fa-solid fa-xmark"></i></button>
+    <div class="modal-logo"><i class="fa-solid fa-camera-retro"></i></div>
+    <h2>Admin Girişi</h2>
+    <p class="modal-sub">Yalnızca yetkili hesap</p>
+    <div class="form-group">
+      <input type="email" id="loginEmail" placeholder="E-posta" class="form-input" />
+      <input type="password" id="loginPass" placeholder="Şifre" class="form-input" />
+      <div id="loginError" class="error-msg"></div>
+      <button class="btn-primary full-width" onclick="loginEmail()">Giriş Yap</button>
+      <div class="divider"><span>veya</span></div>
+      <button class="btn-google" onclick="loginGoogle()">
+        <i class="fa-brands fa-google"></i> Google ile Giriş Yap
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ PLAN DETAIL MODAL ═══════════════════════ -->
+<div class="modal-overlay" id="planDetailModal" onclick="closeModal('planDetailModal')">
+  <div class="modal modal-large" onclick="event.stopPropagation()" id="planDetailContent">
+    <button class="modal-close" onclick="closeModal('planDetailModal')"><i class="fa-solid fa-xmark"></i></button>
+    <!-- Dynamic content injected by JS -->
+  </div>
+</div>
+
+<!-- ═══════════════════════ PLAN EDIT MODAL (Admin) ═══════════════════════ -->
+<div class="modal-overlay" id="planModal" onclick="closeModal('planModal')">
+  <div class="modal modal-large" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('planModal')"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="planModalTitle">Plan Ekle</h2>
+    <input type="hidden" id="planEditId" />
+    <div class="form-group">
+      <label>Plan Adı</label>
+      <input type="text" id="planName" placeholder="Örn: Başlangıç Paketi" class="form-input" />
+      <label>Fiyat (₺)</label>
+      <input type="number" id="planPrice" placeholder="Örn: 1500" class="form-input" />
+      <label>Fiyat Açıklaması</label>
+      <input type="text" id="planPriceLabel" placeholder="Örn: / aylık" class="form-input" />
+      <label>Açıklama</label>
+      <textarea id="planDesc" placeholder="Plan açıklaması..." class="form-input" rows="3"></textarea>
+      <label>Özellikler (her satıra bir özellik)</label>
+      <textarea id="planFeatures" placeholder="Haftalık 3 Reels&#10;2 Gönderi&#10;1 Drone Çekimi" class="form-input" rows="6"></textarea>
+      <label>Renk Teması</label>
+      <select id="planColor" class="form-input">
+        <option value="teal">Deniz Yeşili</option>
+        <option value="navy">Lacivert</option>
+        <option value="gold">Altın</option>
+        <option value="purple">Mor</option>
+      </select>
+      <label>Rozet (opsiyonel)</label>
+      <input type="text" id="planBadge" placeholder="Örn: Popüler" class="form-input" />
+      <label>Sıra No</label>
+      <input type="number" id="planOrder" placeholder="1" class="form-input" />
+      <div id="planError" class="error-msg"></div>
+      <button class="btn-primary full-width" onclick="savePlan()">Kaydet</button>
+      <button class="btn-danger full-width" id="planDeleteBtn" onclick="deletePlan()" style="display:none;">Sil</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ EXTRA EDIT MODAL (Admin) ═══════════════════════ -->
+<div class="modal-overlay" id="extraModal" onclick="closeModal('extraModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('extraModal')"><i class="fa-solid fa-xmark"></i></button>
+    <h2 id="extraModalTitle">Ekstra Hizmet Ekle</h2>
+    <input type="hidden" id="extraEditId" />
+    <div class="form-group">
+      <label>Hizmet Adı</label>
+      <input type="text" id="extraName" placeholder="Örn: Drone Çekimi" class="form-input" />
+      <label>Fiyat (₺)</label>
+      <input type="number" id="extraPrice" placeholder="Örn: 500" class="form-input" />
+      <label>Fiyat Açıklaması</label>
+      <input type="text" id="extraPriceLabel" placeholder="Örn: / seans" class="form-input" />
+      <label>Açıklama</label>
+      <textarea id="extraDesc" placeholder="Hizmet açıklaması..." class="form-input" rows="3"></textarea>
+      <label>İkon (Font Awesome class)</label>
+      <input type="text" id="extraIcon" placeholder="Örn: fa-drone" class="form-input" />
+      <label>Sıra No</label>
+      <input type="number" id="extraOrder" placeholder="1" class="form-input" />
+      <div id="extraError" class="error-msg"></div>
+      <button class="btn-primary full-width" onclick="saveExtra()">Kaydet</button>
+      <button class="btn-danger full-width" id="extraDeleteBtn" onclick="deleteExtra()" style="display:none;">Sil</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ ABOUT EDIT MODAL (Admin) ═══════════════════════ -->
+<div class="modal-overlay" id="aboutModal" onclick="closeModal('aboutModal')">
+  <div class="modal modal-large" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('aboutModal')"><i class="fa-solid fa-xmark"></i></button>
+    <h2>Hakkında Düzenle</h2>
+    <div class="form-group">
+      <label>Biyografi</label>
+      <textarea id="editBio" class="form-input" rows="5"></textarea>
+      <label>Yetenekler (virgülle ayırın)</label>
+      <input type="text" id="editSkills" class="form-input" placeholder="Reels, Drone, Fotoğraf, Kurgu" />
+      <button class="btn-primary full-width" onclick="saveAbout()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ CONTACT EDIT MODAL (Admin) ═══════════════════════ -->
+<div class="modal-overlay" id="contactModal" onclick="closeModal('contactModal')">
+  <div class="modal modal-large" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('contactModal')"><i class="fa-solid fa-xmark"></i></button>
+    <h2>İletişim Bilgilerini Düzenle</h2>
+    <div class="form-group" id="contactEditFields">
+      <!-- Injected dynamically -->
+    </div>
+    <button class="btn-primary full-width" onclick="saveContact()">Kaydet</button>
+    <button class="btn-admin" onclick="addContactField()" style="margin-top:.5rem;width:100%;">
+      <i class="fa-solid fa-plus"></i> Alan Ekle
+    </button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
