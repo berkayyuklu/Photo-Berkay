@@ -115,12 +115,17 @@
       <a href="#plans" class="btn-primary">Planları Gör <i class="fa-solid fa-arrow-down"></i></a>
       <a href="#contact" class="btn-outline">İletişime Geç</a>
     </div>
-    <div class="hero-stats">
+    <div class="hero-stats" id="heroStats">
       <div class="stat"><span class="stat-num" data-target="50">0</span><span>+ Müşteri</span></div>
       <div class="stat-divider"></div>
       <div class="stat"><span class="stat-num" data-target="200">0</span><span>+ İçerik</span></div>
       <div class="stat-divider"></div>
       <div class="stat"><span class="stat-num" data-target="3">0</span><span> Yıl Deneyim</span></div>
+    </div>
+    <div class="admin-only" style="display:none; margin-top:1rem;">
+      <button class="btn-admin" onclick="openStatsModal()">
+        <i class="fa-solid fa-pen"></i> İstatistikleri Düzenle
+      </button>
     </div>
   </div>
   <div class="hero-visual">
@@ -363,6 +368,21 @@
     <button class="btn-primary full-width" onclick="saveContact()">Kaydet</button>
     <button class="btn-admin" onclick="addContactField()" style="margin-top:.5rem;width:100%;">
       <i class="fa-solid fa-plus"></i> Alan Ekle
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ STATS EDIT MODAL (Admin) ═══════════════════════ -->
+<div class="modal-overlay" id="statsModal" onclick="closeModal('statsModal')">
+  <div class="modal modal-large" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('statsModal')"><i class="fa-solid fa-xmark"></i></button>
+    <h2>İstatistikleri Düzenle</h2>
+    <div class="form-group" id="statsEditFields">
+      <!-- Injected dynamically -->
+    </div>
+    <button class="btn-primary full-width" onclick="saveStats()" style="margin-top:.5rem;">Kaydet</button>
+    <button class="btn-admin" onclick="addStatField()" style="margin-top:.5rem;width:100%;">
+      <i class="fa-solid fa-plus"></i> İstatistik Ekle
     </button>
   </div>
 </div>
