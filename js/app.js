@@ -625,3 +625,98 @@ setTimeout(() => {
     setTimeout(() => el.classList.add("visible"), i * 150);
   });
 }, 100);
+
+// ─────────────────────────────────────────────────
+// ── FIRESTORE: HERO STATS ────────────────────────
+// ─────────────────────────────────────────────────
+const defaultStats = [
+  { num: 50, prefix: "", suffix: "+", label: "Müşteri" },
+  { num: 200, prefix: "", suffix: "+", label: "İçerik" },
+  { num: 3, prefix: "", suffix: "", label: "Yıl Deneyim" }
+];
+
+let _statFields = [];
+
+function renderHeroStats(stats) {
+  const container = document.getElementById("heroStats");
+  if (!container) return;
+  const items = stats.map((s, i) => `
+    ${i > 0 ? '<div class="stat-divider"></div>' : ''}
+    <div class="stat">
+      <span class="stat-num" data-target="${s.num}">0</span>
+      <span>${s.suffix || ""}${s.label}</span>
+    </div>
+  `).join("");
+  // preserve admin btn
+  const adminBtn = container.nextElementSibling;
+  container.innerHTML = items;
+  // re-run counter animation
+  container.querySelectorAll(".stat-num").forEach(el => {
+    const target = +el.dataset.target;
+    let cur = 0;
+    const step = Math.ceil(target / 40);
+    const iv = setInterval(() => {
+      cur = Math.min(cur + step, target);
+      el.textContent = cur;
+      if (cur >= target) clearInterval(iv);
+    }, 40);
+  });
+}
+
+function loadStats() {
+  waitFb(async () => {
+    const { db, doc, getDoc } = window._fb;
+    const snap = await getDoc(doc(db, "settings", "heroStats"));
+    const data = snap.exists() ? snap.data() : { stats: defaultStats };
+    renderHeroStats(data.stats || defaultStats);
+  });
+}
+
+window.openStatsModal = function () {
+  waitFb(async () => {
+    const { db, doc, getDoc } = window._fb;
+    const snap = await getDoc(doc(db, "settings", "heroStats"));
+    _statFields = snap.exists() ? [...(snap.data().stats || [])] : [...defaultStats];
+    renderStatEditFields();
+    openModal("statsModal");
+  });
+};
+
+function renderStatEditFields() {
+  const container = document.getElementById("statsEditFields");
+  container.innerHTML = _statFields.map((s, i) => `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.5rem;align-items:end;margin-bottom:.5rem;">
+      <div>
+        <label style="font-size:.75rem;color:var(--text-3);">Sayı</label>
+        <input type="number" class="form-input" value="${s.num}" oninput="_statFields[${i}].num=+this.value" />
+      </div>
+      <div>
+        <label style="font-size:.75rem;color:var(--text-3);">Suffix (+ vb.)</label>
+        <input type="text" class="form-input" value="${s.suffix||''}" oninput="_statFields[${i}].suffix=this.value" />
+      </div>
+      <div>
+        <label style="font-size:.75rem;color:var(--text-3);">Etiket</label>
+        <input type="text" class="form-input" value="${s.label}" oninput="_statFields[${i}].label=this.value" />
+      </div>
+      <button onclick="removeStatField(${i})" style="height:42px;width:42px;border-radius:10px;background:rgba(220,50,50,.1);border:1px solid rgba(220,50,50,.3);color:#e55;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>
+  `).join("");
+}
+
+window.removeStatField = (i) => { _statFields.splice(i, 1); renderStatEditFields(); };
+window.addStatField = () => {
+  _statFields.push({ num: 0, suffix: "+", label: "Yeni" });
+  renderStatEditFields();
+};
+
+window.saveStats = async function () {
+  const { db, doc, setDoc } = window._fb;
+  await setDoc(doc(db, "settings", "heroStats"), { stats: _statFields });
+  closeModal("statsModal");
+  renderHeroStats(_statFields);
+  showToast("İstatistikler güncellendi ✓");
+};
+
+loadStats();
