@@ -269,10 +269,9 @@
   </div>
   <div class="dashboard-tabs">
     <button class="dtab active" onclick="switchDTab(this,'dtab-analytics')"><i class="fa-solid fa-chart-line"></i> Analiz</button>
-    <button class="dtab" onclick="switchDTab(this,'dtab-messages')"><i class="fa-solid fa-message"></i> Mesajlar <span class="dtab-badge" id="dbMsgBadge"></span></button>
+    <button class="dtab" onclick="switchDTab(this,'dtab-chat')"><i class="fa-solid fa-comments"></i> Sohbetler <span class="dtab-badge" id="dbChatBadge"></span></button>
     <button class="dtab" onclick="switchDTab(this,'dtab-reviews')"><i class="fa-solid fa-star"></i> Yorumlar <span class="dtab-badge" id="dbRevBadge"></span></button>
     <button class="dtab" onclick="switchDTab(this,'dtab-plans')"><i class="fa-solid fa-list"></i> Planlar</button>
-    <button class="dtab" onclick="switchDTab(this,'dtab-chat')"><i class="fa-solid fa-comments"></i> Sohbetler <span class="dtab-badge" id="dbChatBadge"></span></button>
   </div>
 
   <!-- Analytics -->
@@ -286,16 +285,6 @@
     <div class="analytics-chart-wrap" style="margin-top:1.5rem;">
       <h3>Son 7 Gün Ziyaretçi</h3>
       <canvas id="visitChart" height="80"></canvas>
-    </div>
-  </div>
-
-  <!-- Messages (chat threads) -->
-  <div class="dtab-content" id="dtab-messages" style="display:none;">
-    <div class="db-chat-layout">
-      <div class="db-user-list" id="dbUserList"><div class="plans-loading"><div class="spinner"></div></div></div>
-      <div class="db-chat-area" id="dbChatArea">
-        <div style="color:var(--text-3);text-align:center;margin-top:4rem;font-size:.9rem;">Bir kullanıcı seçin</div>
-      </div>
     </div>
   </div>
 
