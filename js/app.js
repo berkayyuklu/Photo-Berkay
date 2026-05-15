@@ -500,6 +500,15 @@ window.deleteReview=async function(id){
 };
 
 // ── LIVE CHAT ────────────────────────
+// Image preview lightbox
+window.openImgPreview=function(src){
+  const overlay=document.createElement("div");
+  overlay.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;cursor:zoom-out;";
+  overlay.onclick=()=>overlay.remove();
+  const img=document.createElement("img");
+  img.src=src; img.style.cssText="max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,.8);";
+  overlay.appendChild(img); document.body.appendChild(overlay);
+};
 let _chatOpen=false;
 let _chatUnsub=null;
 window.toggleChat=function(){
@@ -523,7 +532,11 @@ function initChat(){
       const time=m.createdAt?.toDate?.()?new Date(m.createdAt.toDate()).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"}):"";
       if(m.fileUrl){
         const isImg=m.fileType?.startsWith("image");
-        return`<div class="chat-msg ${cls}">${isImg?`<img class="chat-msg-img" src="${m.fileUrl}" onclick="window.open('${m.fileUrl}','_blank')" />`:`<div class="chat-msg-file"><i class="fa-solid fa-file"></i><a href="${m.fileUrl}" target="_blank" rel="noopener">${m.fileName||"Dosya"}</a></div>`}<div class="chat-msg-time">${time}</div></div>`;
+        if(isImg){
+          return`<div class="chat-msg ${cls}"><img class="chat-msg-img" src="${m.fileUrl}" onclick="openImgPreview(this.src)" style="cursor:pointer;"/><div class="chat-msg-time">${time}</div></div>`;
+        } else {
+          return`<div class="chat-msg ${cls}"><div class="chat-msg-file"><i class="fa-solid fa-file"></i> <a href="${m.fileUrl}" download="${m.fileName||'dosya'}" style="color:inherit;text-decoration:underline;">${m.fileName||"Dosya"}</a></div><div class="chat-msg-time">${time}</div></div>`;
+        }
       }
       return`<div class="chat-msg ${cls}">${m.text}<div class="chat-msg-time">${time}</div></div>`;
     }).join("");
@@ -548,25 +561,45 @@ window.sendChatMsg=async function(){
     lastMsg:text,lastTime:window._fb.serverTimestamp(),unread:true
   },{merge:true});
 };
+// Shared helper: read file as base64 and send to chat
+async function _sendFileToChat(file, uid, fromEmail, fromName, isAdmin){
+  if(!file) return;
+  // Limit: 2MB
+  if(file.size > 2*1024*1024){ showToast("Dosya 2MB'den küçük olmalı."); return; }
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const b64 = e.target.result; // data:image/png;base64,...
+    const{addDoc,collection,doc,setDoc,serverTimestamp}=window._fb;
+    await addDoc(collection(window._fb.db,"chats",uid,"messages"),{
+      fileUrl:b64, fileName:file.name, fileType:file.type,
+      uid: isAdmin?"admin":uid,
+      from:fromEmail, fromName:fromName,
+      createdAt:serverTimestamp()
+    });
+    await setDoc(doc(window._fb.db,"chatUsers",uid),{
+      uid, email:isAdmin?"admin":fromEmail,
+      name:fromName,
+      lastMsg:"[Dosya: "+file.name+"]",
+      lastTime:serverTimestamp(),
+      unread:!isAdmin
+    },{merge:true});
+    showToast("Dosya gönderildi ✓");
+  };
+  reader.onerror = ()=>showToast("Dosya okunamadı.");
+  reader.readAsDataURL(file);
+}
+
 window.sendChatFile=async function(input){
   const u=window._currentUser; if(!u) return;
   const file=input.files[0]; if(!file) return;
-  // Read as base64 (no Firebase Storage needed — store URL or base64 snippet)
-  // For files, we'll store download URL via Firebase Storage if available
-  try{
-    const{storage,ref,uploadBytes,getDownloadURL,addDoc,collection,doc,setDoc,serverTimestamp}=window._fb;
-    const storageRef=ref(storage,`chat/${u.uid}/${Date.now()}_${file.name}`);
-    const snap=await uploadBytes(storageRef,file);
-    const url=await getDownloadURL(snap.ref);
-    await addDoc(collection(window._fb.db,"chats",u.uid,"messages"),{
-      fileUrl:url,fileName:file.name,fileType:file.type,
-      uid:u.uid,from:u.email,fromName:u.displayName||u.email,
-      createdAt:serverTimestamp()
-    });
-    await setDoc(doc(window._fb.db,"chatUsers",u.uid),{uid:u.uid,email:u.email,name:u.displayName||u.email,lastMsg:"[Dosya]",lastTime:serverTimestamp(),unread:true},{merge:true});
-    input.value="";
-    showToast("Dosya gönderildi ✓");
-  }catch(e){showToast("Dosya gönderilemedi: "+e.message);}
+  input.value="";
+  await _sendFileToChat(file, u.uid, u.email, u.displayName||u.email, false);
+};
+
+window.sendAdminFile=async function(input, uid){
+  const file=input.files[0]; if(!file) return;
+  input.value="";
+  await _sendFileToChat(file, uid, window._fb.ADMIN_EMAIL, "Berkay", true);
 };
 
 // ── DASHBOARD ────────────────────────
@@ -647,6 +680,10 @@ window.openAdminChat=function(uid,name){
   area.innerHTML=`<div style="padding:.7rem 1rem;border-bottom:1px solid var(--card-border);font-weight:600;font-size:.88rem">${name}</div>
     <div class="db-chat-msgs" id="dbAdminMsgs"></div>
     <div class="db-chat-input-row">
+      <label class="chat-file-btn" title="Dosya Gönder" style="cursor:pointer;color:var(--text-3);font-size:.95rem;padding:.3rem;transition:color .2s;flex-shrink:0;">
+        <i class="fa-solid fa-paperclip"></i>
+        <input type="file" style="display:none;" onchange="sendAdminFile(this,'${uid}')"/>
+      </label>
       <input type="text" id="dbAdminInput" placeholder="Yanıtla..." onkeydown="if(event.key==='Enter')sendAdminReply('${uid}')"/>
       <button onclick="sendAdminReply('${uid}')">Gönder</button>
     </div>`;
@@ -659,7 +696,11 @@ window.openAdminChat=function(uid,name){
       const isAdmin=m.from===window._fb.ADMIN_EMAIL;
       const cls=isAdmin?"mine":"theirs";
       const time=m.createdAt?.toDate?.()?new Date(m.createdAt.toDate()).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"}):"";
-      if(m.fileUrl){const isImg=m.fileType?.startsWith("image");return`<div class="chat-msg ${cls}">${isImg?`<img class="chat-msg-img" src="${m.fileUrl}"/>`:`<a href="${m.fileUrl}" target="_blank" style="color:inherit">${m.fileName}</a>`}<div class="chat-msg-time">${time}</div></div>`;}
+      if(m.fileUrl){
+        const isImg=m.fileType?.startsWith("image");
+        if(isImg){return`<div class="chat-msg ${cls}"><img class="chat-msg-img" src="${m.fileUrl}" onclick="openImgPreview(this.src)" style="cursor:pointer;"/><div class="chat-msg-time">${time}</div></div>`;}
+        else{return`<div class="chat-msg ${cls}"><div class="chat-msg-file"><i class="fa-solid fa-file"></i> <a href="${m.fileUrl}" download="${m.fileName||'dosya'}" style="color:inherit;text-decoration:underline;">${m.fileName||"Dosya"}</a></div><div class="chat-msg-time">${time}</div></div>`;}
+      }
       return`<div class="chat-msg ${cls}">${m.text}<div class="chat-msg-time">${time}</div></div>`;
     }).join("");
     msgs.scrollTop=msgs.scrollHeight;
