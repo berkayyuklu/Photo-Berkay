@@ -34,7 +34,7 @@ photo-berkay/
 - Plana tıklayınca baloncuk animasyonuyla detay modalı
 
 ### Yönetim (Admin Paneli)
-- 🔐 Sadece `yukluberkay@gmail.com` hesabı düzenleme yetkisine sahip
+- 🔐 Sadece admin hesabı düzenleme yetkisine sahip
 - Kontrol Paneli (sağ üst köşe → **Panel** butonu):
   - **Analiz** — Toplam görüntülenme, kullanıcı sayısı, mesaj sayısı, bekleyen yorum; Son 7 gün ziyaretçi grafiği
   - **Sohbetler** — Tüm kullanıcı konuşmaları, yanıt gönderme, dosya/fotoğraf paylaşımı
@@ -80,9 +80,6 @@ Firebase Console → Authentication → Sign-in method:
 - ✅ **Email/Password** → Enable
 - ✅ **Google** → Enable → Support email ekle → Save
 
-Authentication → Users → **Add user**:
-- Email: `yukluberkay@gmail.com`
-- Password: `admin2008`
 
 ### 4. Firestore Database
 Firebase Console → Firestore Database → Create database → Production mode → Bölge: `europe-west1`
@@ -159,7 +156,7 @@ Firebase Console → Authentication → **Settings** → **Authorized domains** 
 
 | İşlem | Nasıl Yapılır |
 |---|---|
-| Giriş | Sağ üst → Giriş Yap → `yukluberkay@gmail.com` / `admin2008` |
+| Giriş | Sağ üst → Giriş Yap → admin hesabı
 | Kontrol Paneli | Giriş sonrası sağ üstte **Panel** butonu |
 | Plan Ekle/Düzenle | Panel → Planlar sekmesi veya ana sayfada plan altındaki Düzenle butonu |
 | Yorum Onayla | Panel → Yorumlar sekmesi → Onayla / Reddet |
