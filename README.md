@@ -1,63 +1,100 @@
-# 📸 Photo Berkay — Kurulum Rehberi
+# 📸 Photo Berkay — Sosyal Medya Yönetimi Sitesi
 
-## Proje Yapısı
+Profesyonel sosyal medya yönetimi hizmetleri için tasarlanmış, Firebase destekli modern bir web sitesi.
+
+---
+
+## 📁 Dosya Yapısı
 
 ```
 photo-berkay/
-├── index.html          ← Ana sayfa
+├── index.html        ← Ana sayfa (tek HTML dosyası)
 ├── css/
-│   └── style.css       ← Tüm stiller
+│   └── style.css     ← Tüm stiller
 ├── js/
-│   └── app.js          ← Firebase + uygulama mantığı
+│   └── app.js        ← Firebase + uygulama mantığı
 └── README.md
 ```
 
 ---
 
-## 🔥 Firebase Kurulumu (Zorunlu)
+## ✨ Özellikler
 
-### 1. Firebase Projesi Oluştur
-1. [console.firebase.google.com](https://console.firebase.google.com) adresine git
-2. **"Add project"** → Proje adını gir (örn: `photo-berkay`)
-3. Google Analytics eklemek ister misiniz? → İsteğe bağlı, "Continue"
+### Genel
+- 🌗 Açık / Koyu tema geçişi (varsayılan: açık mod)
+- 📱 Tam responsive tasarım (mobil uyumlu)
+- ✨ Parçacık animasyonlu arka plan
+- 🎨 **Pinyon Script** logo fontu (elegant görünüm)
+- 🔤 **Plus Jakarta Sans + Space Grotesk** yazı tipleri
 
-### 2. Web Uygulaması Ekle
-1. Firebase konsolunda `</>` (Web) ikonuna tıkla
-2. App nickname: `photo-berkay-web`
-3. **"Register app"** → Sana bir `firebaseConfig` objesi verecek
+### Hizmet Planları
+- Metalik plan kartları: Altın, Gümüş, Bronz, Zümrüt, Safir, Rose Gold
+- 5 farklı renk stili: Dolgu, Çerçeve, Üst Şerit, Soluk Parıltı, Boyasız
+- Para birimi seçimi: ₺ TL / $ USD / € EUR (plan eklerken seçilir, sabit kur yok)
+- Plana tıklayınca baloncuk animasyonuyla detay modalı
 
-### 3. `index.html` dosyasını güncelle
-`index.html` içindeki şu kısmı bul ve kendi değerlerinle değiştir:
+### Yönetim (Admin Paneli)
+- 🔐 Sadece `yukluberkay@gmail.com` hesabı düzenleme yetkisine sahip
+- Kontrol Paneli (sağ üst köşe → **Panel** butonu):
+  - **Analiz** — Toplam görüntülenme, kullanıcı sayısı, mesaj sayısı, bekleyen yorum; Son 7 gün ziyaretçi grafiği
+  - **Sohbetler** — Tüm kullanıcı konuşmaları, yanıt gönderme, dosya/fotoğraf paylaşımı
+  - **Yorumlar** — Onay bekleyen yorumları onayla veya reddet
+  - **Planlar** — Plan ve ekstra hizmetleri hızlıca düzenle
+- Hero istatistiklerini düzenleme (50+ Müşteri vb.)
+- Hakkında bölümünü düzenleme
+- İletişim bilgilerini düzenleme (sosyal medya ekle/çıkar)
 
+### Kullanıcı Sistemi
+- Kayıt Ol / Giriş Yap (e-posta + şifre veya Google)
+- Profil fotoğrafı yükleme (base64)
+- Yorum yapabilme (admin onayı gerekli, onaylanmadan sitede görünmez)
+
+### Canlı Sohbet
+- Sağ alt köşede sabit **💬 Canlı Destek** butonu
+- Giriş yapan kullanıcılar admin ile anlık mesajlaşabilir
+- Dosya ve fotoğraf gönderimi (base64, maks. 2MB)
+- Admin konuşmalara kontrol panelinden yanıt verir
+- Okunmamış mesaj bildirimi (kırmızı rozet)
+
+---
+
+## 🔥 Firebase Kurulumu
+
+### 1. Firebase Projesi
+[console.firebase.google.com](https://console.firebase.google.com) → Proje oluştur → Web uygulaması ekle → Config'i kopyala.
+
+### 2. `index.html` İçindeki Config'i Güncelle
 ```javascript
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",              // ← Buraya yapıştır
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
 };
 ```
 
-### 4. Authentication Ayarları
-Firebase Konsol → **Authentication** → **Sign-in method**:
+### 3. Authentication
+Firebase Console → Authentication → Sign-in method:
 - ✅ **Email/Password** → Enable
-- ✅ **Google** → Enable → Support email: `yukluberkay@gmail.com` → Save
+- ✅ **Google** → Enable → Support email ekle → Save
 
-### 5. Firestore Database Oluştur
-Firebase Konsol → **Firestore Database** → **Create database**
-- Production mode seç → Next
-- Bölge: `europe-west1` (Avrupa) → Enable
+Authentication → Users → **Add user**:
+- Email: `yukluberkay@gmail.com`
+- Password: `admin2008`
 
-### 6. Firestore Güvenlik Kuralları
-Firestore → **Rules** sekmesine git ve şunu yapıştır:
+### 4. Firestore Database
+Firebase Console → Firestore Database → Create database → Production mode → Bölge: `europe-west1`
 
-```firestore
+### 5. Firestore Güvenlik Kuralları
+Firestore → **Rules** sekmesi → aşağıdakini yapıştır → **Publish**:
+
+```
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Planlar, ekstralar, hakkında, iletişim → Herkes okuyabilir, sadece admin yazabilir
+
     match /plans/{id} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.token.email == "yukluberkay@gmail.com";
@@ -70,88 +107,78 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null && request.auth.token.email == "yukluberkay@gmail.com";
     }
-    // Yorumlar → Herkes okuyabilir ve yazabilir, silme sadece admin
+    match /analytics/{id} {
+      allow read, write: if request.auth != null && request.auth.token.email == "yukluberkay@gmail.com";
+    }
     match /reviews/{id} {
       allow read: if true;
-      allow create: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.token.email == "yukluberkay@gmail.com";
       allow delete: if request.auth != null && request.auth.token.email == "yukluberkay@gmail.com";
+    }
+    match /chats/{uid}/messages/{msgId} {
+      allow read: if request.auth != null && (request.auth.uid == uid || request.auth.token.email == "yukluberkay@gmail.com");
+      allow create: if request.auth != null && (request.auth.uid == uid || request.auth.token.email == "yukluberkay@gmail.com");
+      allow delete: if request.auth != null && request.auth.token.email == "yukluberkay@gmail.com";
+    }
+    match /chatUsers/{uid} {
+      allow read: if request.auth != null && request.auth.token.email == "yukluberkay@gmail.com";
+      allow write: if request.auth != null && (request.auth.uid == uid || request.auth.token.email == "yukluberkay@gmail.com");
+    }
+    match /users/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || request.auth.token.email == "yukluberkay@gmail.com");
+      allow write: if request.auth != null && request.auth.uid == uid;
     }
   }
 }
 ```
 
-**Publish** butonuna bas.
-
-### 7. Admin Hesabı Oluştur
-Firebase Konsol → Authentication → **Users** → **Add user**:
-- Email: `yukluberkay@gmail.com`
-- Password: `admin2008`
-
 ---
 
 ## 🚀 GitHub Pages ile Yayınlama
 
-### 1. GitHub'a Yükle
 ```bash
 git init
 git add .
-git commit -m "Initial commit - Photo Berkay"
+git commit -m "Photo Berkay v1.0"
 git branch -M main
 git remote add origin https://github.com/KULLANICI_ADIN/photo-berkay.git
 git push -u origin main
 ```
 
-### 2. GitHub Pages Aktifleştir
-1. GitHub → Repository → **Settings** → **Pages**
-2. Source: **Deploy from a branch**
-3. Branch: `main` / `/ (root)`
-4. **Save**
+GitHub → Repository → **Settings** → **Pages** → Branch: `main` / `/ (root)` → **Save**
 
-Birkaç dakika içinde `https://KULLANICI_ADIN.github.io/photo-berkay/` adresinde yayında olur!
+Site birkaç dakika içinde `https://berkayyuklu.github.io/Photo-Berkay/` adresinde yayında olur.
 
-### 3. Firebase'e Domain Ekle (Google Login için)
-Firebase Konsol → Authentication → **Settings** → **Authorized domains**:
-- `KULLANICI_ADIN.github.io` → **Add domain**
+### Google Login için Domain Ekle
+Firebase Console → Authentication → **Settings** → **Authorized domains** → `berkayyuklu.github.io` → **Add domain**
 
 ---
 
-## 📝 Kullanım Kılavuzu
+## 🛠️ Admin Kullanım Kılavuzu
 
-### Admin Girişi
-- Sağ üstte **"Giriş Yap"** butonuna tıkla
-- E-posta: `yukluberkay@gmail.com` | Şifre: `admin2008`
-- Veya **Google ile Giriş Yap**
-
-### Plan Yönetimi
-- Giriş yaptıktan sonra **"Planlar"** bölümünde **"Yeni Plan Ekle"** butonu görünür
-- Her planın altındaki **"Düzenle"** butonuyla mevcut planları güncelleyebilirsin
-
-### Ekstra Hizmet Yönetimi
-- **"Ekstra Hizmetler"** bölümünde **"Yeni Ekstra Ekle"** butonu
-
-### Hakkımda & İletişim
-- İlgili bölümlerin altındaki **"Düzenle"** butonlarıyla güncelleyebilirsin
+| İşlem | Nasıl Yapılır |
+|---|---|
+| Giriş | Sağ üst → Giriş Yap → `yukluberkay@gmail.com` / `admin2008` |
+| Kontrol Paneli | Giriş sonrası sağ üstte **Panel** butonu |
+| Plan Ekle/Düzenle | Panel → Planlar sekmesi veya ana sayfada plan altındaki Düzenle butonu |
+| Yorum Onayla | Panel → Yorumlar sekmesi → Onayla / Reddet |
+| Müşteri Mesajı | Panel → Sohbetler sekmesi → kullanıcıyı seç → yanıtla |
+| Dosya Gönder | Sohbet içinde 📎 ikonu (maks. 2MB, drive linki öneri) |
+| Hakkında Düzenle | Hakkımda bölümü altındaki Düzenle butonu |
+| İletişim Düzenle | İletişim bölümü altındaki Düzenle butonu |
+| İstatistik Düzenle | Hero bölümündeki İstatistikleri Düzenle butonu |
 
 ---
 
-## 🎨 Özellikler
+## 📝 Notlar
 
-- ✅ Lacivert & Teal renk teması
-- ✅ Koyu / Açık tema geçişi
-- ✅ Parçacık animasyonu (arka plan)
-- ✅ Baloncuk animasyonuyla plan detay sayfası
-- ✅ Firebase Auth (E-posta + Google)
-- ✅ Firestore gerçek zamanlı veritabanı
-- ✅ Admin paneli (yalnızca yukluberkay@gmail.com)
-- ✅ Plan / Ekstra / Hakkında / İletişim yönetimi
-- ✅ Müşteri yorumları (herkese açık)
-- ✅ Tam responsive tasarım
-- ✅ GitHub Pages uyumlu (statik dosya)
+- Site tamamen **bilgi amaçlıdır** — satın al / sipariş et butonu yoktur
+- Fiyatlar **sabit kur olmadan** girilir (TL, USD veya EUR seçilir, dönüşüm yoktur)
+- Yorumlar admin onayı olmadan sitede **görünmez**
+- Dosya gönderimi base64 ile çalışır, Firebase Storage gerektirmez (2MB sınırı)
+- Büyük dosyalar için Google Drive linki paylaşılabilir
 
 ---
 
-## ⚠️ Notlar
-
-- Satın al / Sipariş et butonu **yoktur** (bilgi amaçlı site)
-- Tüm içerik Firebase Firestore'da saklanır
-- Site ilk açıldığında Firestore'dan veri çeker; internet bağlantısı gereklidir
+© 2025 Photo Berkay — Berkay Yüklü
